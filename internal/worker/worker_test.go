@@ -162,7 +162,7 @@ func TestRun_Concurrency(t *testing.T) {
 	var running atomic.Int32
 	go w.Run(t.Context())
 
-	// 両ジョブが同時に running になることを確認
+	// wait until both jobs are running concurrently
 	deadline := time.Now().Add(3 * time.Second)
 	for time.Now().Before(deadline) {
 		jobs, _ := db.ListJobs(d, "running", 0)
