@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [[ \"$f\" == *.go ]] || exit 0; gofmt -w \"$f\" && cd \"$(git -C \"$(dirname \"$f\")\" rev-parse --show-toplevel)\" && golangci-lint run ./...; } 2>/dev/null || true",
+            "statusMessage": "gofmt + golangci-lint..."
+          }
+        ]
+      }
+    ]
+  }
+}
