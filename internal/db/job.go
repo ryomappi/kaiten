@@ -87,10 +87,10 @@ func GetJob(db *sql.DB, id string) (*Job, error) {
 		started_at, finished_at, exit_code, stdout, stderr FROM jobs WHERE id LIKE ?`, id+"%",
 	)
 	var j Job
-	var startedAt, finishedAt sql.NullString
+	var startedAt, finishedAt, stdout, stderr sql.NullString
 	var exitCode sql.NullInt64
 	if err := row.Scan(&j.ID, &j.Command, &j.Priority, &j.Status,
-		&j.CreatedAt, &startedAt, &finishedAt, &exitCode, &j.Stdout, &j.Stderr); err != nil {
+		&j.CreatedAt, &startedAt, &finishedAt, &exitCode, &stdout, &stderr); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("job %s not found", id)
 		}
@@ -108,6 +108,8 @@ func GetJob(db *sql.DB, id string) (*Job, error) {
 		c := int(exitCode.Int64)
 		j.ExitCode = &c
 	}
+	j.Stdout = stdout.String
+	j.Stderr = stderr.String
 	return &j, nil
 }
 
