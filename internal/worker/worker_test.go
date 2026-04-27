@@ -157,13 +157,10 @@ func TestRun_Concurrency(t *testing.T) {
 	_ = db.InsertJob(d, "job-1", "sleep 0.2", 0)
 	_ = db.InsertJob(d, "job-2", "sleep 0.2", 0)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	w := &Worker{DB: d, Workers: 2, PollFreq: 50 * time.Millisecond}
 
 	var running atomic.Int32
-	go w.Run(ctx)
+	go w.Run(t.Context())
 
 	// 両ジョブが同時に running になることを確認
 	deadline := time.Now().Add(3 * time.Second)
