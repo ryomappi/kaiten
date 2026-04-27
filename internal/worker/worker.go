@@ -58,7 +58,9 @@ func (w *Worker) execute(ctx context.Context, id, command string) {
 
 	parts := strings.Fields(command)
 	if len(parts) == 0 {
-		db.FinishJob(w.DB, id, 1, "", "empty command")
+		if err := db.FinishJob(w.DB, id, 1, "", "empty command"); err != nil {
+			log.Printf("finish job %s: %v", id, err)
+		}
 		return
 	}
 
@@ -85,7 +87,9 @@ func (w *Worker) execute(ctx context.Context, id, command string) {
 
 	// If context cancelled, mark as cancelled
 	if ctx.Err() != nil {
-		db.MarkCancelledRunning(w.DB, id)
+		if err := db.MarkCancelledRunning(w.DB, id); err != nil {
+			log.Printf("mark cancelled job %s: %v", id, err)
+		}
 		log.Printf("job %s cancelled", id)
 		return
 	}

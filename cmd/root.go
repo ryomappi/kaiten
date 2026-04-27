@@ -25,7 +25,10 @@ func SetVersion(v string) {
 }
 
 func init() {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = os.Getenv("HOME")
+	}
 	defaultDB := filepath.Join(home, ".kaiten", "jobs.db")
 	rootCmd.PersistentFlags().StringVar(&dbPath, "db", defaultDB, "path to SQLite database")
 	rootCmd.PersistentFlags().Lookup("db").DefValue = "~/.kaiten/jobs.db"

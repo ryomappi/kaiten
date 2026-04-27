@@ -133,24 +133,26 @@ func ClaimPending(db *sql.DB, n int) ([]Job, error) {
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.Query(
-		`SELECT id, command FROM jobs WHERE status='pending'
-		ORDER BY priority DESC, created_at ASC LIMIT ?`, n,
-	)
-	if err != nil {
-		return nil, err
-	}
-	var jobs []Job
-	for rows.Next() {
-		var j Job
-		if err := rows.Scan(&j.ID, &j.Command); err != nil {
-			rows.Close()
+	jobs, err := func() ([]Job, error) {
+		rows, err := tx.Query(
+			`SELECT id, command FROM jobs WHERE status='pending'
+			ORDER BY priority DESC, created_at ASC LIMIT ?`, n,
+		)
+		if err != nil {
 			return nil, err
 		}
-		jobs = append(jobs, j)
-	}
-	rows.Close()
-	if err := rows.Err(); err != nil {
+		defer rows.Close()
+		var jobs []Job
+		for rows.Next() {
+			var j Job
+			if err := rows.Scan(&j.ID, &j.Command); err != nil {
+				return nil, err
+			}
+			jobs = append(jobs, j)
+		}
+		return jobs, rows.Err()
+	}()
+	if err != nil {
 		return nil, err
 	}
 
