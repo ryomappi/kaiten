@@ -130,6 +130,55 @@ kaiten logs a662e277
 kaiten cancel a662e277
 ```
 
+## Deploying on Linux (systemd)
+
+Create a systemd user service so `kaiten worker` starts automatically on login and restarts on crash.
+
+**1. Create the unit file**
+
+```bash
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/kaiten.service << 'EOF'
+[Unit]
+Description=Kaiten job queue worker
+After=default.target
+
+[Service]
+ExecStart=%h/.local/bin/kaiten worker --workers 4
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+EOF
+```
+
+Adjust `ExecStart` if `kaiten` is installed elsewhere, and tune `--workers` as needed.
+
+**2. Enable and start**
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now kaiten
+```
+
+**3. Common operations**
+
+```bash
+systemctl --user status kaiten      # check status
+systemctl --user stop kaiten        # stop
+systemctl --user restart kaiten     # restart
+journalctl --user -u kaiten -f      # tail logs
+```
+
+**4. Start on boot without login (optional)**
+
+By default, systemd user services only run while the user is logged in. To keep the worker running even after logout (e.g. on a headless server):
+
+```bash
+sudo loginctl enable-linger $USER
+```
+
 ## Job Statuses
 
 | Status | Description |
