@@ -14,9 +14,10 @@ import (
 )
 
 type Worker struct {
-	DB       *sql.DB
-	Workers  int
-	PollFreq time.Duration
+	DB        *sql.DB
+	Workers   int
+	PollFreq  time.Duration
+	Retention db.RetentionPolicy
 }
 
 func (w *Worker) Run(ctx context.Context) {
@@ -29,6 +30,10 @@ func (w *Worker) Run(ctx context.Context) {
 			wg.Wait()
 			return
 		case <-time.After(w.PollFreq):
+		}
+
+		if err := db.DeleteExpired(w.DB, w.Retention); err != nil {
+			log.Printf("cleanup error: %v", err)
 		}
 
 		free := w.Workers - len(sem)

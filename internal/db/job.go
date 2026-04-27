@@ -188,3 +188,34 @@ func MarkCancelledRunning(db *sql.DB, id string) error {
 	)
 	return err
 }
+
+// RetentionPolicy holds per-status retention durations. Non-positive values mean keep forever.
+type RetentionPolicy struct {
+	Done      time.Duration
+	Failed    time.Duration
+	Cancelled time.Duration
+}
+
+// DeleteExpired removes finished jobs whose finished_at exceeds the retention period.
+func DeleteExpired(d *sql.DB, p RetentionPolicy) error {
+	type entry struct {
+		status   string
+		duration time.Duration
+	}
+	for _, e := range []entry{
+		{string(StatusDone), p.Done},
+		{string(StatusFailed), p.Failed},
+		{string(StatusCancelled), p.Cancelled},
+	} {
+		if e.duration <= 0 {
+			continue
+		}
+		cutoff := time.Now().UTC().Add(-e.duration).Format("2006-01-02T15:04:05Z")
+		if _, err := d.Exec(
+			`DELETE FROM jobs WHERE status=? AND finished_at < ?`, e.status, cutoff,
+		); err != nil {
+			return fmt.Errorf("delete expired %s: %w", e.status, err)
+		}
+	}
+	return nil
+}
