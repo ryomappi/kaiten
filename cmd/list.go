@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"text/tabwriter"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -34,39 +33,37 @@ var listCmd = &cobra.Command{
 			return nil
 		}
 
-		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tSTATUS\tPRI\tCREATED\tCOMMAND")
+		fmt.Fprintf(os.Stdout, "%-8s  %-9s  %3s  %-19s  %s\n", "ID", "STATUS", "PRI", "CREATED", "COMMAND")
 		for _, j := range jobs {
-			cmd := j.Command
-			if len(cmd) > 40 {
-				cmd = cmd[:37] + "..."
+			command := j.Command
+			if len(command) > 40 {
+				command = command[:37] + "..."
 			}
-			fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n",
+			fmt.Fprintf(os.Stdout, "%s  %s  %3d  %s  %s\n",
 				j.ID[:8],
 				colorStatus(string(j.Status)),
 				j.Priority,
 				j.CreatedAt.Format(time.DateTime),
-				cmd,
+				command,
 			)
 		}
-		return w.Flush()
+		return nil
 	},
 }
 
 func colorStatus(s string) string {
+	padded := fmt.Sprintf("%-9s", s) // "cancelled" is the longest status with 9 chars
 	switch s {
-	case "pending":
-		return s
 	case "running":
-		return "\033[33m" + s + "\033[0m"
+		return "\033[33m" + padded + "\033[0m"
 	case "done":
-		return "\033[32m" + s + "\033[0m"
+		return "\033[32m" + padded + "\033[0m"
 	case "failed":
-		return "\033[31m" + s + "\033[0m"
+		return "\033[31m" + padded + "\033[0m"
 	case "cancelled":
-		return "\033[90m" + s + "\033[0m"
+		return "\033[90m" + padded + "\033[0m"
 	}
-	return s
+	return padded
 }
 
 func init() {
