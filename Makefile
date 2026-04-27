@@ -14,7 +14,7 @@ uninstall:
 	rm -f $(PREFIX)/bin/$(BIN)
 
 lint:
-	go vet ./...
+	golangci-lint run ./...
 
 clean:
 	rm -f $(BIN)
