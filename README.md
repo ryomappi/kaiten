@@ -56,6 +56,9 @@ kaiten worker [flags]
 |---|---|---|
 | `--workers` | `4` | Number of parallel workers |
 | `--poll` | `1s` | Polling interval (e.g. `500ms`, `2s`) |
+| `--retain-done` | `14` | Days to retain `done` jobs (`0` = keep forever) |
+| `--retain-failed` | `30` | Days to retain `failed` jobs (`0` = keep forever) |
+| `--retain-cancelled` | `7` | Days to retain `cancelled` jobs (`0` = keep forever) |
 
 ### `kaiten enqueue`
 
