@@ -1,0 +1,32 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - errcheck       # unhandled errors (DB, exec, etc.)
+    - govet          # go vet checks
+    - staticcheck    # comprehensive static analysis
+    - unused         # unused code detection
+    - misspell       # typos in comments/strings
+    - gocritic       # various code quality checks
+    - nilerr         # returning nil after err != nil check
+    - sqlclosecheck  # sql.Rows/Stmt not closed
+    - rowserrcheck   # rows.Err() unchecked after rows.Next() loop
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false  # x, _ := f() is OK (cobra flag accessors, time.Parse, etc.)
+      exclude-functions:
+        - (*database/sql.DB).Close
+        - (*database/sql.Tx).Rollback
+        - (*database/sql.Rows).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
